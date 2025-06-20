@@ -1,108 +1,41 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { useToast } from "@/hooks/use-toast"
 import { Phone, Moon, Sun, Loader2 } from "lucide-react"
 import { useTheme } from "next-themes"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const countryCodes = [
-  { name: "United States", code: "+1", flag: "🇺🇸" },
-  { name: "United Kingdom", code: "+44", flag: "🇬🇧" },
-  { name: "Canada", code: "+1", flag: "🇨🇦" },
-  { name: "Australia", code: "+61", flag: "🇦🇺" },
-  { name: "Germany", code: "+49", flag: "🇩🇪" },
-  { name: "France", code: "+33", flag: "🇫🇷" },
-  { name: "India", code: "+91", flag: "🇮🇳" },
-  { name: "China", code: "+86", flag: "🇨🇳" },
-  { name: "Japan", code: "+81", flag: "🇯🇵" },
-  { name: "Brazil", code: "+55", flag: "🇧🇷" },
-  { name: "Russia", code: "+7", flag: "🇷🇺" },
-  { name: "South Korea", code: "+82", flag: "🇰🇷" },
-  { name: "Mexico", code: "+52", flag: "🇲🇽" },
-  { name: "Italy", code: "+39", flag: "🇮🇹" },
-  { name: "Spain", code: "+34", flag: "🇪🇸" },
-  { name: "Netherlands", code: "+31", flag: "🇳🇱" },
-  { name: "Sweden", code: "+46", flag: "🇸🇪" },
-  { name: "Norway", code: "+47", flag: "🇳🇴" },
-  { name: "Denmark", code: "+45", flag: "🇩🇰" },
-  { name: "Finland", code: "+358", flag: "🇫🇮" },
-  { name: "Switzerland", code: "+41", flag: "🇨🇭" },
-  { name: "Austria", code: "+43", flag: "🇦🇹" },
-  { name: "Belgium", code: "+32", flag: "🇧🇪" },
-  { name: "Poland", code: "+48", flag: "🇵🇱" },
-  { name: "Turkey", code: "+90", flag: "🇹🇷" },
-  { name: "South Africa", code: "+27", flag: "🇿🇦" },
-  { name: "Egypt", code: "+20", flag: "🇪🇬" },
-  { name: "Nigeria", code: "+234", flag: "🇳🇬" },
-  { name: "Kenya", code: "+254", flag: "🇰🇪" },
-  { name: "UAE", code: "+971", flag: "🇦🇪" },
-  { name: "Saudi Arabia", code: "+966", flag: "🇸🇦" },
-  { name: "Israel", code: "+972", flag: "🇮🇱" },
-  { name: "Singapore", code: "+65", flag: "🇸🇬" },
-  { name: "Malaysia", code: "+60", flag: "🇲🇾" },
-  { name: "Thailand", code: "+66", flag: "🇹🇭" },
-  { name: "Philippines", code: "+63", flag: "🇵🇭" },
-  { name: "Indonesia", code: "+62", flag: "🇮🇩" },
-  { name: "Vietnam", code: "+84", flag: "🇻🇳" },
-  { name: "New Zealand", code: "+64", flag: "🇳🇿" },
-  { name: "Argentina", code: "+54", flag: "🇦🇷" },
-  { name: "Chile", code: "+56", flag: "🇨🇱" },
-  { name: "Colombia", code: "+57", flag: "🇨🇴" },
-  { name: "Peru", code: "+51", flag: "🇵🇪" },
-  { name: "Venezuela", code: "+58", flag: "🇻🇪" },
+const presetCallers = [
+  { name: "Mom", number: "+1234567890" },
+  { name: "Jake", number: "+1987654321" },
+  { name: "Boss", number: "+1555123456" },
 ]
 
 export default function FakeCallGenerator() {
-  const [fakeName, setFakeName] = useState("")
-  const [phoneNumber, setPhoneNumber] = useState("")
+  const [selectedCaller, setSelectedCaller] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const { toast } = useToast()
   const { theme, setTheme } = useTheme()
-  const [countryCode, setCountryCode] = useState("+1")
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (!fakeName.trim() || !phoneNumber.trim()) {
+  const handleSubmit = async () => {
+    if (!selectedCaller) {
       toast({
-        title: "Missing Information",
-        description: "Please fill in both the caller name and phone number.",
+        title: "No Caller Selected",
+        description: "Please select a caller first.",
         variant: "destructive",
       })
       return
     }
 
-    if (!phoneNumber.trim()) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in both the caller name and phone number.",
-        variant: "destructive",
-      })
-      return
-    }
-
-    // Basic phone number validation (without country code)
-    const phoneRegex = /^[\d]{4,15}$/
-    if (!phoneRegex.test(phoneNumber.replace(/\s+/g, ""))) {
-      toast({
-        title: "Invalid Phone Number",
-        description: "Please enter a valid phone number (digits only).",
-        variant: "destructive",
-      })
-      return
-    }
+    const caller = presetCallers.find((c) => c.name === selectedCaller)
+    if (!caller) return
 
     setIsLoading(true)
 
@@ -113,8 +46,8 @@ export default function FakeCallGenerator() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          toNumber: countryCode + phoneNumber,
-          fakeName: fakeName,
+          toNumber: caller.number,
+          fakeName: caller.name,
         }),
       })
 
@@ -125,9 +58,8 @@ export default function FakeCallGenerator() {
           duration: 5000,
         })
 
-        // Reset form after successful submission
-        setFakeName("")
-        setPhoneNumber("")
+        // Reset selection after successful submission
+        setSelectedCaller(null)
       } else {
         throw new Error("Failed to initiate call")
       }
@@ -180,79 +112,48 @@ export default function FakeCallGenerator() {
           </CardHeader>
 
           <CardContent className="space-y-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Fake Caller Name Input */}
-              <div className="space-y-2">
-                <Label htmlFor="fakeName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Fake Caller Name
-                </Label>
-                <Input
-                  id="fakeName"
-                  type="text"
-                  placeholder="e.g., Mom, Boss, Unknown Number"
-                  value={fakeName}
-                  onChange={(e) => setFakeName(e.target.value)}
-                  className="h-12 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 rounded-xl transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
-                  disabled={isLoading}
-                />
-              </div>
-
-              {/* Phone Number Input with Country Code */}
-              <div className="space-y-2">
-                <Label htmlFor="phoneNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Your Phone Number
-                </Label>
-                <div className="flex gap-2">
-                  {/* Country Code Dropdown */}
-                  <Select value={countryCode} onValueChange={setCountryCode} disabled={isLoading}>
-                    <SelectTrigger className="w-32 h-12 border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 rounded-xl transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60">
-                      {countryCodes.map((country) => (
-                        <SelectItem key={country.code + country.name} value={country.code}>
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{country.flag}</span>
-                            <span className="font-mono text-sm">{country.code}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  {/* Phone Number Input */}
-                  <Input
-                    id="phoneNumber"
-                    type="tel"
-                    placeholder="xxxxxxxxxx"
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    className="flex-1 h-12 text-base border-2 border-gray-200 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 rounded-xl transition-all duration-200 hover:border-gray-300 dark:hover:border-gray-500"
+            {/* Preset Caller Buttons */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 text-center">
+                Choose who's calling you:
+              </h3>
+              <div className="flex gap-3 justify-center">
+                {presetCallers.map((caller) => (
+                  <Button
+                    key={caller.name}
+                    variant={selectedCaller === caller.name ? "default" : "outline"}
+                    onClick={() => setSelectedCaller(caller.name)}
                     disabled={isLoading}
-                  />
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">Example: {countryCode} 1234567890</p>
+                    className={`flex-1 h-12 text-base font-semibold rounded-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] ${
+                      selectedCaller === caller.name
+                        ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg"
+                        : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-2 border-gray-200 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400"
+                    }`}
+                  >
+                    {caller.name}
+                  </Button>
+                ))}
               </div>
+            </div>
 
-              {/* Submit Button */}
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Calling...
-                  </>
-                ) : (
-                  <>
-                    <Phone className="mr-2 h-5 w-5" />
-                    Call Me Now
-                  </>
-                )}
-              </Button>
-            </form>
+            {/* Call Button */}
+            <Button
+              onClick={handleSubmit}
+              disabled={isLoading || !selectedCaller}
+              className="w-full h-14 text-lg font-semibold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  Calling...
+                </>
+              ) : (
+                <>
+                  <Phone className="mr-2 h-5 w-5" />
+                  Call Me Now
+                </>
+              )}
+            </Button>
 
             {/* Additional Info */}
             <div className="text-center pt-4 border-t border-gray-200 dark:border-gray-600">
